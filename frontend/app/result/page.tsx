@@ -14,7 +14,7 @@ const RISK_BG: Record<string, string> = {
 };
 
 interface FullResult extends ScoreResult {
-  rawScores?: { memory: number; reaction: number; pattern: number; speech: number };
+  rawScores?: { memory: number; reaction: number; pattern: number; speech: number; facial: number };
   aiInsight?: string;
 }
 
@@ -59,6 +59,7 @@ export default function ResultPage() {
     { label: "Memory", score: result.rawScores.memory, icon: "🧩", color: "#09ffd3" },
     { label: "Reaction", score: result.rawScores.reaction, icon: "⚡", color: "#6366f1" },
     { label: "Pattern", score: result.rawScores.pattern, icon: "🔷", color: "#f59e0b" },
+    { label: "Facial", score: result.rawScores.facial ?? 0, icon: "👁️", color: "#a78bfa" },
     { label: "Speech", score: result.rawScores.speech, icon: "🎙️", color: "#ec4899" },
   ] : [];
 

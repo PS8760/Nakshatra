@@ -9,7 +9,7 @@ interface HistoryEntry {
   date: string;
   finalScore: number;
   riskLevel: "Low" | "Medium" | "High";
-  rawScores?: { memory: number; reaction: number; pattern: number; speech: number };
+  rawScores?: { memory: number; reaction: number; pattern: number; speech: number; facial?: number };
   aiInsight?: string;
 }
 
@@ -139,11 +139,11 @@ export default function DashboardPage() {
       {history.some((h) => h.rawScores) && (
         <div className="gradient-border p-6 mb-6">
           <h2 className="text-sm text-gray-500 uppercase tracking-widest mb-5">Average by Domain</h2>
-          {(["memory", "reaction", "pattern", "speech"] as const).map((domain) => {
-            const vals = history.filter((h) => h.rawScores).map((h) => h.rawScores![domain]);
-            const avg = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
-            const colors: Record<string, string> = { memory: "#09ffd3", reaction: "#6366f1", pattern: "#f59e0b", speech: "#ec4899" };
-            const icons: Record<string, string> = { memory: "🧩", reaction: "⚡", pattern: "🔷", speech: "🎙️" };
+          {(["memory", "reaction", "pattern", "facial", "speech"] as const).map((domain) => {
+            const vals = history.filter((h) => h.rawScores).map((h) => h.rawScores![domain] ?? 0);
+            const avg = vals.length ? Math.round(vals.reduce((a: number, b: number) => a + b, 0) / vals.length) : 0;
+            const colors: Record<string, string> = { memory: "#09ffd3", reaction: "#6366f1", pattern: "#f59e0b", facial: "#a78bfa", speech: "#ec4899" };
+            const icons: Record<string, string> = { memory: "🧩", reaction: "⚡", pattern: "🔷", facial: "👁️", speech: "🎙️" };
             return (
               <div key={domain} className="flex items-center gap-3 mb-3 last:mb-0">
                 <span className="text-base w-6">{icons[domain]}</span>

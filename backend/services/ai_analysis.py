@@ -9,7 +9,7 @@ def get_ai_insight(score: int, risk: str, raw_scores: dict) -> str:
         from groq import Groq
         client = Groq(api_key=GROQ_API_KEY)
 
-        prompt = f"""You are a cognitive health AI assistant. A patient just completed a cognitive screening test.
+        prompt = f"""You are a cognitive health AI assistant. A patient completed a multimodal cognitive screening.
 
 Results:
 - Overall Score: {score}/100
@@ -17,15 +17,16 @@ Results:
 - Memory Score: {raw_scores.get('memory', 'N/A')}/100
 - Reaction Time Score: {raw_scores.get('reaction', 'N/A')}/100
 - Pattern Recognition Score: {raw_scores.get('pattern', 'N/A')}/100
-- Speech Clarity Score: {raw_scores.get('speech', 'N/A')}/100
+- Facial Attention Score: {raw_scores.get('facial', 'N/A')}/100 (blink rate & gaze stability)
+- Speech Fluency Score: {raw_scores.get('speech', 'N/A')}/100
 
-Provide a brief, empathetic, professional 2-3 sentence personalized insight about their cognitive health.
-Focus on their strongest and weakest domains. Do NOT give medical diagnoses. Keep it under 80 words."""
+Provide a brief, empathetic, professional 2-3 sentence personalized insight.
+Mention their strongest and weakest domains specifically. Do NOT give medical diagnoses. Under 80 words."""
 
         response = client.chat.completions.create(
             model="llama3-8b-8192",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=120,
+            max_tokens=130,
             temperature=0.7,
         )
         return response.choices[0].message.content.strip()

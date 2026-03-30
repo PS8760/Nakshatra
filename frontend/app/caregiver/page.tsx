@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/utils/api";
 import AuthGuard from "@/components/AuthGuard";
+import { useAuth } from "@/context/AuthContext";
 
 interface HistoryEntry {
   date: string;
@@ -29,17 +30,30 @@ const TIPS = [
 ];
 
 export default function CaregiverPage() {
+  const { user, token } = useAuth();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [alertSent, setAlertSent] = useState(false);
   const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem("cogniHistory") || "[]") as HistoryEntry[];
-      setHistory(stored);
-    } catch { /* ignore */ }
-  }, []);
+    async function load() {
+      // Try MongoDB first
+      if (token) {
+        try {
+          const data = await apiFetch("/history", {}, token);
+          if (data.history?.length > 0) { setHistory(data.history); return; }
+        } catch { /* fallback */ }
+      }
+      // Fallback to localStorage
+      try {
+        const stored = JSON.parse(localStorage.getItem("cogniHistory") || "[]") as HistoryEntry[];
+        setHistory(stored);
+      } catch { /* ignore */ }
+    }
+    load();
+  }, [token]);
 
   const highRiskCount = history.filter((h) => h.riskLevel === "High").length;
   const latest = history[0];
@@ -49,7 +63,18 @@ export default function CaregiverPage() {
     e.preventDefault();
     if (!email.trim()) return;
     setSending(true);
-    await new Promise((r) => setTimeout(r, 1500)); // Simulate send
+    try {
+      await apiFetch("/alert", {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          score: latest?.finalScore ?? 0,
+          riskLevel: latest?.riskLevel ?? "Unknown",
+          patientName: user?.name ?? "Patient",
+          message,
+        }),
+      }, token);
+    } catch { /* ignore */ }
     setSending(false);
     setAlertSent(true);
   }
@@ -124,6 +149,8 @@ export default function CaregiverPage() {
               />
               <textarea
                 rows={3}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 placeholder="Optional message…"
                 className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#09ffd3] transition text-sm resize-none"
               />
