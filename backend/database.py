@@ -12,9 +12,9 @@ async def connect_db():
     try:
         client = AsyncIOMotorClient(
             MONGO_URI,
-            serverSelectionTimeoutMS=8000,
-            connectTimeoutMS=8000,
-            socketTimeoutMS=15000,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=10000,
         )
         await client.admin.command("ping")
         db = client[DB_NAME]
