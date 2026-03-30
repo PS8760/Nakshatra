@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/utils/api";
 import AuthGuard from "@/components/AuthGuard";
+import ReportModal from "@/components/ReportModal";
 
 interface HistoryEntry {
   date: string;
@@ -55,6 +56,7 @@ export default function DashboardPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [useMock, setUseMock] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -102,12 +104,30 @@ export default function DashboardPage() {
           </h1>
           <p className="text-gray-500 text-sm">Your cognitive health over time</p>
         </div>
-        <Link href="/test">
-          <button className="px-5 py-2.5 rounded-xl bg-[#09ffd3] text-[#02182b] font-bold text-sm hover:brightness-110 transition shadow-[0_0_16px_rgba(9,255,211,0.2)]">
-            + New Test
-          </button>
-        </Link>
+        <div className="flex gap-3">
+          {history.length > 0 && !useMock && (
+            <button
+              onClick={() => setShowReport(true)}
+              className="px-5 py-2.5 rounded-xl border border-[#09ffd3]/30 text-[#09ffd3] font-bold text-sm hover:bg-[#09ffd3]/10 transition"
+            >
+              📄 Report
+            </button>
+          )}
+          <Link href="/test">
+            <button className="px-5 py-2.5 rounded-xl bg-[#09ffd3] text-[#02182b] font-bold text-sm hover:brightness-110 transition shadow-[0_0_16px_rgba(9,255,211,0.2)]">
+              + New Test
+            </button>
+          </Link>
+        </div>
       </div>
+
+      {showReport && (
+        <ReportModal
+          history={history}
+          userName={user?.name ?? "Patient"}
+          onClose={() => setShowReport(false)}
+        />
+      )}
 
       {useMock && (
         <div className="mb-6 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">
