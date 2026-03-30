@@ -1,13 +1,13 @@
-from config import OPENAI_API_KEY
+from config import GROQ_API_KEY
 
 
 def get_ai_insight(score: int, risk: str, raw_scores: dict) -> str:
-    """Use OpenAI to generate a personalized cognitive insight."""
-    if not OPENAI_API_KEY:
+    """Use Groq (llama3) to generate a personalized cognitive insight."""
+    if not GROQ_API_KEY:
         return ""
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=OPENAI_API_KEY)
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
 
         prompt = f"""You are a cognitive health AI assistant. A patient just completed a cognitive screening test.
 
@@ -23,12 +23,12 @@ Provide a brief, empathetic, professional 2-3 sentence personalized insight abou
 Focus on their strongest and weakest domains. Do NOT give medical diagnoses. Keep it under 80 words."""
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="llama3-8b-8192",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=120,
             temperature=0.7,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        print(f"OpenAI error: {e}")
+        print(f"Groq error: {e}")
         return ""

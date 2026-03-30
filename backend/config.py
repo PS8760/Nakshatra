@@ -19,8 +19,11 @@ JWT_SECRET       = _require("JWT_SECRET")
 JWT_ALGORITHM    = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRE_HOURS = int(os.getenv("JWT_EXPIRE_HOURS", "72"))
 
-# OpenAI
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")  # optional — AI insight degrades gracefully
+# OpenAI (legacy — replaced by Groq)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+# Groq
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 # SMTP / Nodemailer
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
