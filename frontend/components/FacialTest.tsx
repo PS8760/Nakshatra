@@ -80,7 +80,11 @@ export default function FacialTest({ onComplete }: Props) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240, facingMode: "user" }, audio: false });
       streamRef.current = stream;
-      if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        // autoPlay handles playback — manual play() as fallback
+        videoRef.current.play().catch(() => {});
+      }
       setPhase("calibrating");
       setTimeout(startRecording, 2500);
     } catch {
@@ -215,24 +219,36 @@ export default function FacialTest({ onComplete }: Props) {
           <motion.div key="cam" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
             className="flex flex-col items-center gap-4 w-full">
             {/* Camera feed with overlay */}
-            <div className="relative rounded-2xl overflow-hidden border border-[#09ffd3]/30 bg-black w-64 h-48">
-              <video ref={videoRef} muted playsInline className="w-full h-full object-cover scale-x-[-1]" />
+            <div className="relative rounded-2xl overflow-hidden border border-[#09ffd3]/30 w-64 h-48 bg-[#02182b]">
+              {/* Video MUST be z-0 and visible — no bg-black covering it */}
+              <video
+                ref={videoRef}
+                muted
+                playsInline
+                autoPlay
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ transform: "scaleX(-1)" }}
+              />
               <canvas ref={canvasRef} className="hidden" />
-              <BrainScanRings active={phase === "recording"} />
+
+              {/* Overlays sit on top with pointer-events-none so video is always visible */}
+              <div className="absolute inset-0 pointer-events-none z-10">
+                <BrainScanRings active={phase === "recording"} />
+              </div>
 
               {phase === "calibrating" && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 gap-2">
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50 gap-2">
                   <div className="w-6 h-6 border-2 border-[#09ffd3] border-t-transparent rounded-full animate-spin" />
                   <p className="text-[#09ffd3] text-xs font-semibold">Calibrating…</p>
                 </div>
               )}
 
               {phase === "recording" && (
-                <>
+                <div className="absolute inset-0 z-20 pointer-events-none">
                   {/* Face oval guide */}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <motion.div className="w-28 h-36 rounded-full border-2 border-dashed border-[#09ffd3]/50"
-                      animate={{ borderColor: ["rgba(9,255,211,0.3)", "rgba(9,255,211,0.7)", "rgba(9,255,211,0.3)"] }}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <motion.div className="w-28 h-36 rounded-full border-2 border-dashed border-[#09ffd3]/60"
+                      animate={{ borderColor: ["rgba(9,255,211,0.3)", "rgba(9,255,211,0.8)", "rgba(9,255,211,0.3)"] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                   </div>
@@ -251,7 +267,7 @@ export default function FacialTest({ onComplete }: Props) {
                     ["bottom-1 left-1", "border-b-2 border-l-2"], ["bottom-1 right-1", "border-b-2 border-r-2"]].map(([pos, border]) => (
                     <div key={pos} className={`absolute ${pos} w-4 h-4 border-[#09ffd3] ${border}`} />
                   ))}
-                </>
+                </div>
               )}
             </div>
 
