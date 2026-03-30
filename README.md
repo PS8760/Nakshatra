@@ -26,7 +26,7 @@ Built for hackathon by **Pranav Ghodke, Jui Katkade, Aditya Chavan, Gauri Borse*
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/cogniscan-ai.git
+git clone https://github.com/PS8760/Nakshatra.git
 cd cogniscan-ai
 ```
 
