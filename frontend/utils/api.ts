@@ -1,4 +1,4 @@
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 export async function apiFetch(path: string, options: RequestInit = {}, token?: string | null) {
   const headers: Record<string, string> = {
