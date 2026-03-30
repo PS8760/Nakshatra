@@ -5,12 +5,32 @@ from database import connect_db, close_db, get_db
 from routes import router
 import os
 import asyncio
+import httpx
+import logging
+
+logger = logging.getLogger(__name__)
+
+SELF_URL = os.getenv("RENDER_EXTERNAL_URL", "").rstrip("/") or "https://cogniscan-ai-backend.onrender.com"
+PING_INTERVAL = 9 * 60  # ping every 9 minutes — Render spins down after 15 min of inactivity
+
+
+async def keep_alive():
+    """Self-ping to prevent Render free tier from spinning down."""
+    await asyncio.sleep(60)  # wait for full startup before first ping
+    while True:
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                await client.get(f"{SELF_URL}/health")
+            logger.info("🏓 Keep-alive ping sent")
+        except Exception as e:
+            logger.warning(f"Keep-alive ping failed: {e}")
+        await asyncio.sleep(PING_INTERVAL)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(connect_db())
-    # Start weekly reminder scheduler after DB connects
-    await asyncio.sleep(3)
+    await connect_db()
+    asyncio.create_task(keep_alive())
     try:
         from services.scheduler import run_scheduler
         db = get_db()
