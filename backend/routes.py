@@ -161,7 +161,12 @@ async def score(scores: TestScores, authorization: str = Header(None)):
             }
             await db.users.update_one(
                 {"_id": ObjectId(payload["sub"])},
-                {"$push": {"testHistory": {"$each": [entry], "$position": 0, "$slice": 20}}},
+                {"$push": {"testHistory": {"$each": [entry], "$position": 0, "$slice": 20}},
+                 "$set": {
+                     "lastTestDate": datetime.utcnow(),
+                     "lastScore": result.finalScore,
+                     "lastRisk": result.riskLevel,
+                 }},
             )
 
     return ScoreWithAI(**result.dict(), aiInsight=ai_insight)
@@ -249,6 +254,29 @@ async def get_doctors(city: Optional[str] = None):
 
 # ── Health ────────────────────────────────────────────────────────────────────
 
+# ── Reminder preferences ─────────────────────────────────────────────────────
+
+class ReminderRequest(BaseModel):
+    enabled: bool
+
+@router.put("/reminder")
+async def set_reminder(req: ReminderRequest, current_user: dict = Depends(get_current_user)):
+    db = get_db()
+    await db.users.update_one(
+        {"_id": ObjectId(current_user["sub"])},
+        {"$set": {"weeklyReminder": req.enabled}}
+    )
+    return {"success": True, "weeklyReminder": req.enabled}
+
+@router.get("/reminder")
+async def get_reminder(current_user: dict = Depends(get_current_user)):
+    db = get_db()
+    user = await db.users.find_one({"_id": ObjectId(current_user["sub"])})
+    return {"weeklyReminder": user.get("weeklyReminder", False) if user else False}
+
+
+# ── Health ────────────────────────────────────────────────────────────────────
+
 @router.get("/health")
 def health():
-    return {"status": "ok", "version": "3.0.0"}
+    return {"status": "ok", "version": "3.1.0"}

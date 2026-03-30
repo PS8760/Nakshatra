@@ -2,6 +2,7 @@ import smtplib
 import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from typing import Optional
 from config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, TEAM_EMAIL
 
 logger = logging.getLogger(__name__)
@@ -84,3 +85,43 @@ def send_contact_email(name: str, email: str, subject: str, message: str) -> boo
     </div>
     """
     return send_email(TEAM_EMAIL, f"[CogniscanAI] {subject}", html)
+
+
+def send_weekly_reminder(to: str, name: str, days_since_last: Optional[int], last_score: Optional[int], last_risk: Optional[str]) -> bool:
+    last_info = ""
+    if last_score is not None and last_risk:
+        risk_color = {"Low": "#09ffd3", "Medium": "#f59e0b", "High": "#ef4444"}.get(last_risk, "#fff")
+        last_info = f"""
+        <div style="background:#ffffff10;border-radius:10px;padding:16px;margin:16px 0;text-align:center">
+          <p style="color:#aaa;font-size:13px;margin:0 0 4px">Your last score</p>
+          <p style="color:{risk_color};font-size:32px;font-weight:bold;margin:0">{last_score}<span style="font-size:16px;color:#666">/100</span></p>
+          <p style="color:{risk_color};font-size:13px;margin:4px 0 0">{last_risk} Risk</p>
+        </div>"""
+
+    days_text = f"{days_since_last} days ago" if days_since_last else "a while ago"
+
+    html = f"""
+    <div style="font-family:sans-serif;background:#02182b;color:#fff;padding:40px;border-radius:12px;max-width:600px;margin:auto">
+      <div style="text-align:center;margin-bottom:24px">
+        <span style="font-size:40px">🧠</span>
+        <h2 style="color:#09ffd3;margin:8px 0 0">CogniscanAI</h2>
+      </div>
+      <h2 style="color:#fff">Hi {name}, time for your weekly check-in!</h2>
+      <p style="color:#aaa;line-height:1.6">
+        Your last cognitive screening was <strong style="color:#fff">{days_text}</strong>.
+        Regular weekly testing helps detect subtle changes over time — the earlier, the better.
+      </p>
+      {last_info}
+      <div style="text-align:center;margin:28px 0">
+        <a href="https://nakshatra.vercel.app/test"
+           style="display:inline-block;padding:14px 32px;background:#09ffd3;color:#02182b;font-weight:bold;border-radius:12px;text-decoration:none;font-size:16px">
+          Take This Week's Test →
+        </a>
+      </div>
+      <p style="color:#555;font-size:12px;text-align:center;margin-top:24px">
+        You're receiving this because you enabled weekly reminders.<br>
+        <a href="https://nakshatra.vercel.app/profile" style="color:#09ffd3">Manage preferences</a>
+      </p>
+    </div>
+    """
+    return send_email(to, "🧠 Your weekly cognitive check-in is due", html)
