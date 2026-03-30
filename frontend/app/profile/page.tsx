@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/utils/api";
 import AuthGuard from "@/components/AuthGuard";
-
 export default function ProfilePage() {
   const { user, token, updateUser, logout } = useAuth();
   const router = useRouter();

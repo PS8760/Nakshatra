@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import type { ScoreResult } from "@/utils/scoring";
 import AuthGuard from "@/components/AuthGuard";
 import { fadeUp, scaleIn, staggerContainer } from "@/utils/motion";
+import { useAuth } from "@/context/AuthContext";
 
 const RISK_COLOR: Record<string, string> = { Low: "#09ffd3", Medium: "#f59e0b", High: "#ef4444" };
 const RISK_BG: Record<string, string> = {
@@ -22,6 +23,21 @@ export default function ResultPage() {
   const [result, setResult] = useState<FullResult | null>(null);
   const [animated, setAnimated] = useState(0);
   const [barsVisible, setBarsVisible] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const { user } = useAuth();
+
+  async function handleExport() {
+    if (!result) return;
+    setExporting(true);
+    try {
+      const { exportReportPdf } = await import("@/utils/exportPdf");
+      await exportReportPdf(result, user?.name ?? "Patient");
+    } catch (e) {
+      console.error("PDF export failed", e);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => {
     try {
@@ -191,6 +207,19 @@ export default function ResultPage() {
             </button>
           </Link>
         </div>
+
+        {/* PDF Export */}
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="w-full py-3 rounded-xl border border-white/10 text-gray-400 hover:border-[#09ffd3]/30 hover:text-[#09ffd3] transition text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {exporting ? (
+            <><span className="w-3 h-3 border border-[#09ffd3] border-t-transparent rounded-full animate-spin" /> Generating PDF…</>
+          ) : (
+            <><span>📄</span> Download PDF Report</>
+          )}
+        </button>
 
         <p className="text-xs text-gray-600 text-center">
           Screening tool only — not a medical diagnosis. Consult a healthcare professional.
