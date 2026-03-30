@@ -4,6 +4,11 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRE_HOURS
 
+# passlib 1.7.4 is incompatible with bcrypt 4.x — patch the missing attribute
+import bcrypt as _bcrypt_module
+if not hasattr(_bcrypt_module, "__about__"):
+    _bcrypt_module.__about__ = type("about", (), {"__version__": _bcrypt_module.__version__})()
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:

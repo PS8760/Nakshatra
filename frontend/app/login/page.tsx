@@ -21,7 +21,7 @@ function LoginForm() {
       const data = await apiFetch("/auth/login", {
         method: "POST",
         body: JSON.stringify(form),
-      });
+      }, null, 60000);
       login(data.token, data.user);
       router.push(redirect);
     } catch (err: any) {
@@ -83,7 +83,7 @@ function LoginForm() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-[#02182b]/30 border-t-[#02182b] rounded-full animate-spin" />
-                  Signing in…
+                  Signing in… (server waking up)
                 </span>
               ) : "Sign In →"}
             </button>

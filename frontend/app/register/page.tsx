@@ -19,7 +19,7 @@ export default function RegisterPage() {
       const data = await apiFetch("/auth/register", {
         method: "POST",
         body: JSON.stringify({ ...form, age: form.age ? parseInt(form.age) : undefined }),
-      });
+      }, null, 60000);
       login(data.token, data.user);
       router.push("/dashboard");
     } catch (err: any) {
@@ -91,7 +91,7 @@ export default function RegisterPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-[#02182b]/30 border-t-[#02182b] rounded-full animate-spin" />
-                  Creating account…
+                  Creating account… (server waking up)
                 </span>
               ) : "Create Account →"}
             </button>

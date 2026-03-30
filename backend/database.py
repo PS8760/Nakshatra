@@ -15,6 +15,8 @@ async def connect_db():
             serverSelectionTimeoutMS=5000,
             connectTimeoutMS=5000,
             socketTimeoutMS=10000,
+            maxPoolSize=5,       # limit pool size on free tier (default is 100)
+            minPoolSize=1,
         )
         await client.admin.command("ping")
         db = client[DB_NAME]
