@@ -63,6 +63,7 @@ export default function SpeechTest({ onComplete }: Props) {
   const [volume, setVolume] = useState(0);
   const startTimeRef = useRef<number>(0);
   const recognitionRef = useRef<any>(null);
+  const transcriptRef = useRef(""); // fix stale closure — always current value
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number>(0);
@@ -105,26 +106,30 @@ export default function SpeechTest({ onComplete }: Props) {
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = true;
+    recognition.continuous = true; // keep listening until user stops
     recognition.maxAlternatives = 1;
     recognitionRef.current = recognition;
     startTimeRef.current = Date.now();
+    transcriptRef.current = "";
     setPhase("listening");
 
     // Start mic volume monitor
     navigator.mediaDevices.getUserMedia({ audio: true }).then(startVolumeMonitor).catch(() => {});
 
     recognition.onresult = (event: any) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        interim += event.results[i][0].transcript;
+      let full = "";
+      for (let i = 0; i < event.results.length; i++) {
+        full += event.results[i][0].transcript + " ";
       }
-      setTranscript(interim);
+      const trimmed = full.trim();
+      transcriptRef.current = trimmed; // always update ref (no stale closure)
+      setTranscript(trimmed);
     };
 
     recognition.onend = () => {
       stopVolumeMonitor();
       const duration = Date.now() - startTimeRef.current;
-      const finalText = transcript || "[no input]";
+      const finalText = transcriptRef.current || "[no input]"; // use ref, not state
       const { score: s, metrics: m } = analyzeSpeech(finalText, duration);
       setScore(s);
       setMetrics(m);
@@ -132,10 +137,19 @@ export default function SpeechTest({ onComplete }: Props) {
       onComplete(s, finalText, m);
     };
 
-    recognition.onerror = () => {
+    recognition.onerror = (event: any) => {
       stopVolumeMonitor();
-      setPhase("done");
-      onComplete(40, "[error]");
+      if (event.error === "no-speech") {
+        // Timeout — use whatever we have
+        const finalText = transcriptRef.current || "[no input]";
+        const duration = Date.now() - startTimeRef.current;
+        const { score: s, metrics: m } = analyzeSpeech(finalText, duration);
+        setScore(s); setMetrics(m); setPhase("done");
+        onComplete(s, finalText, m);
+      } else {
+        setPhase("done");
+        onComplete(40, "[error]");
+      }
     };
 
     recognition.start();
