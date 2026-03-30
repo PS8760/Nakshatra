@@ -61,12 +61,26 @@ export default function DashboardPage() {
       if (token) {
         try {
           const data = await apiFetch("/history", {}, token);
-          if (data.history?.length > 0) { setHistory(data.history); setLoading(false); return; }
-        } catch { /* fallback */ }
+          if (data.history?.length > 0) {
+            setHistory(data.history);
+            setLoading(false);
+            return;
+          }
+          // Logged in but no history yet — show empty state, NOT mock
+          setHistory([]);
+          setLoading(false);
+          return;
+        } catch { /* fallback to localStorage */ }
       }
+      // Not logged in — try localStorage
       const stored = JSON.parse(localStorage.getItem("cogniHistory") || "[]") as HistoryEntry[];
-      if (stored.length > 0) { setHistory(stored); }
-      else { setHistory(MOCK); setUseMock(true); }
+      if (stored.length > 0) {
+        setHistory(stored);
+      } else {
+        // Only show mock if completely unauthenticated
+        setHistory(MOCK);
+        setUseMock(true);
+      }
       setLoading(false);
     }
     load();

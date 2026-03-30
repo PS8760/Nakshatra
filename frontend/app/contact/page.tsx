@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { apiFetch } from "@/utils/api";
 import AuthGuard from "@/components/AuthGuard";
+import { useAuth } from "@/context/AuthContext";
 
 const CATEGORIES = ["General", "Bug Report", "Feature Request", "Medical Query", "Technical Support", "Other"];
 
@@ -13,6 +14,7 @@ const TEAM = [
 ];
 
 export default function ContactPage() {
+  const { token } = useAuth();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "", category: "General" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -23,7 +25,7 @@ export default function ContactPage() {
     e.preventDefault();
     setLoading(true); setError("");
     try {
-      const data = await apiFetch("/contact", { method: "POST", body: JSON.stringify(form) });
+      const data = await apiFetch("/contact", { method: "POST", body: JSON.stringify(form) }, token);
       setEmailSent(data.emailSent ?? true);
       setSuccess(true);
       setForm({ name: "", email: "", subject: "", message: "", category: "General" });

@@ -24,7 +24,7 @@ Provide a brief, empathetic, professional 2-3 sentence personalized insight.
 Mention their strongest and weakest domains specifically. Do NOT give medical diagnoses. Under 80 words."""
 
         response = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=130,
             temperature=0.7,
