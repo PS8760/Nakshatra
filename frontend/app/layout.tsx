@@ -3,6 +3,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
+import PageLoader from "@/components/PageLoader";
+import BackendWarmup from "@/components/BackendWarmup";
 
 export const metadata: Metadata = {
   title: "CogniscanAI — Early Cognitive Decline Detection",
@@ -21,6 +23,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-[#02182b] text-white antialiased flex flex-col">
         <AuthProvider>
+          <PageLoader />
+          <BackendWarmup />
           <Navbar />
           <main className="flex-1 pt-16">{children}</main>
           <Footer />
